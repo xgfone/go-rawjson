@@ -17,7 +17,50 @@ package rawjson
 import (
 	"bytes"
 	"fmt"
+	"testing"
 )
+
+func BenchmarkBytes_MarshalJSON_Parallel(b *testing.B) {
+	bs := []byte(` {"a" : 123 , "b" : " a b c "} `)
+
+	b.ReportAllocs()
+	b.RunParallel(func(p *testing.PB) {
+		for p.Next() {
+			Bytes(bs).MarshalJSON()
+		}
+	})
+}
+
+func BenchmarkBytes_MarshalJSON_For(b *testing.B) {
+	bs := []byte(` {"a" : 123 , "b" : " a b c "} `)
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		Bytes(bs).MarshalJSON()
+	}
+}
+
+func BenchmarkBytes_WriterTo_Parallel(b *testing.B) {
+	bs := []byte(` {"a" : 123 , "b" : " a b c "} `)
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		buf := getbuffer()
+		Bytes(bs).WriteTo(buf)
+		putbuffer(buf)
+	}
+}
+
+func BenchmarkBytes_WriterTo_For(b *testing.B) {
+	bs := []byte(` {"a" : 123 , "b" : " a b c "} `)
+	buf := bytes.NewBuffer(nil)
+
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		Bytes(bs).WriteTo(buf)
+	}
+}
 
 func ExampleBytes() {
 	/// Empty
